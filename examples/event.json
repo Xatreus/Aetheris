@@ -1,0 +1,4 @@
+{
+  "service":"support-agent", "environment":"staging", "version":"1.2.0", "event_type":"tool_call",
+  "latency_ms":340,"success":true,"trace_id":"example-trace-001","attributes":{"tool_name":"search_docs","provider":"example"}
+}

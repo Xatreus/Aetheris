@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sightline-control-plane
+  namespace: sightline
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: sightline-control-plane}
+  template:
+    metadata:
+      labels: {app: sightline-control-plane}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: control-plane
+          image: ghcr.io/REPLACE_WITH_OWNER/sightline-control-plane:0.1.0
+          ports: [{containerPort: 8000}]
+          env:
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: sightline-database, key: database-url}}
+          readinessProbe: {httpGet: {path: /ready, port: 8000}, initialDelaySeconds: 5, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: 8000}, initialDelaySeconds: 10, periodSeconds: 20}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: sightline-control-plane, namespace: sightline}
+spec:
+  selector: {app: sightline-control-plane}
+  ports: [{name: http, port: 8000, targetPort: 8000}]

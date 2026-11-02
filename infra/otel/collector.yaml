@@ -1,0 +1,24 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: {endpoint: 0.0.0.0:4317}
+      http: {endpoint: 0.0.0.0:4318}
+processors:
+  memory_limiter: {check_interval: 5s, limit_mib: 256}
+  batch: {timeout: 5s}
+  attributes/redact:
+    actions:
+      - {key: enduser.id, action: delete}
+      - {key: user.email, action: delete}
+      - {key: http.request.header.authorization, action: delete}
+exporters:
+  debug: {verbosity: basic}
+  otlp/phoenix:
+    endpoint: phoenix:4317
+    tls: {insecure: true}
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, attributes/redact, batch]
+      exporters: [debug, otlp/phoenix]
