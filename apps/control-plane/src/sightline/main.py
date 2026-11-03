@@ -5,12 +5,13 @@ from .db import init_db, save_event, SessionLocal
 from .investigation import investigate
 from .policy import DEFAULT_POLICY, evaluate_release
 from .schemas import InvestigationRequest, ReliabilityEvent, ReleaseEvaluationRequest
+from .slo import SLOEvaluationRequest, evaluate_slo
 @asynccontextmanager
 async def lifespan(app):
     init_db(); yield
-app = FastAPI(title="Sightline Control Plane", version="0.1.0", description="Evidence-based reliability checks for AI applications.", lifespan=lifespan)
+app = FastAPI(title="Aetheris Control Plane", version="0.1.0", description="Evidence-based reliability engineering for AI applications.", lifespan=lifespan)
 @app.get("/health")
-def health(): return {"status":"ok", "service":"sightline-control-plane"}
+def health(): return {"status":"ok", "service":"aetheris-control-plane"}
 @app.get("/ready")
 def ready():
     try:
@@ -27,3 +28,5 @@ def ingest_event(event: ReliabilityEvent):
 def release_evaluation(request: ReleaseEvaluationRequest): return evaluate_release(request)
 @app.post("/v1/incidents/investigate")
 def incident_investigation(request: InvestigationRequest): return investigate(request)
+@app.post("/v1/slo/evaluate")
+def slo_evaluation(request: SLOEvaluationRequest): return evaluate_slo(request)
