@@ -6,6 +6,10 @@ window aggregation are separate responsibilities.
 """
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+# Percentages are reported to this precision to avoid binary-float noise
+# changing threshold decisions at exact policy boundaries.
+_PERCENT_PRECISION = 8
+
 
 class SLOEvaluationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -46,10 +50,13 @@ def evaluate_slo(request: SLOEvaluationRequest) -> SLOEvaluationResponse:
     observed_error_rate = failed / total
     allowed_error_rate = 1.0 - request.target_availability
     allowed_failures = total * allowed_error_rate
-    # With a positive target error budget, the denominator is never zero.
+
+    # The target is strictly below 1, so allowed_error_rate is positive.
     burn_rate = observed_error_rate / allowed_error_rate
-    consumed = (failed / allowed_failures) * 100.0 if allowed_failures else 0.0
-    remaining = max(0.0, 100.0 - consumed)
+    consumed = (failed / allowed_failures) * 100.0
+    consumed = round(consumed, _PERCENT_PRECISION)
+    remaining = round(max(0.0, 100.0 - consumed), _PERCENT_PRECISION)
+    burn_rate = round(burn_rate, _PERCENT_PRECISION)
 
     if failed > allowed_failures:
         status = "breached"
@@ -65,9 +72,9 @@ def evaluate_slo(request: SLOEvaluationRequest) -> SLOEvaluationResponse:
         service=request.service,
         window_hours=request.window_hours,
         target_availability=request.target_availability,
-        observed_availability=1.0 - observed_error_rate,
-        observed_error_rate=observed_error_rate,
-        allowed_error_rate=allowed_error_rate,
+        observed_availability=round(1.0 - observed_error_rate, _PERCENT_PRECISION),
+        observed_error_rate=round(observed_error_rate, _PERCENT_PRECISION),
+        allowed_error_rate=round(allowed_error_rate, _PERCENT_PRECISION),
         allowed_failures=allowed_failures,
         observed_failures=failed,
         error_budget_consumed_percent=consumed,
