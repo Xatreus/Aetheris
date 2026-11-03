@@ -5,7 +5,6 @@ from datetime import UTC, datetime
 from sqlalchemy import DateTime, Integer, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sightline.db")
 engine = create_engine(
     DATABASE_URL,
