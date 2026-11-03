@@ -31,9 +31,10 @@ def test_slo_breach_when_failures_exceed_budget():
     assert result.error_budget_remaining_percent == 0.0
 
 
-def test_slo_warns_when_budget_burn_is_high():
-    result = evaluate_slo(make_request(failed_requests=200))
-    assert result.status == "breached"
+def test_slo_marks_low_remaining_budget_at_risk():
+    result = evaluate_slo(make_request(failed_requests=80))
+    assert result.status == "at_risk"
+    assert result.error_budget_remaining_percent == pytest.approx(20.0)
 
 
 def test_slo_rejects_failure_count_greater_than_total():
