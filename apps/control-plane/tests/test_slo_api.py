@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from sightline.main import app
@@ -17,8 +18,8 @@ def test_slo_evaluation_endpoint():
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "healthy"
-    assert body["observed_availability"] == 0.9999
-    assert body["error_budget_consumed_percent"] == 10.0
+    assert body["observed_availability"] == pytest.approx(0.9999)
+    assert body["error_budget_consumed_percent"] == pytest.approx(10.0)
 
 
 def test_slo_endpoint_rejects_impossible_failure_count():
