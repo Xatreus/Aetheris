@@ -37,6 +37,11 @@ def test_slo_marks_low_remaining_budget_at_risk():
     assert result.error_budget_remaining_percent == pytest.approx(20.0)
 
 
+def test_slo_marks_exact_burn_threshold_at_risk():
+    result = evaluate_slo(make_request(failed_requests=200))
+    assert result.status == "breached"
+
+
 def test_slo_rejects_failure_count_greater_than_total():
     with pytest.raises(ValidationError):
         make_request(failed_requests=100_001)
