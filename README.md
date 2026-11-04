@@ -49,7 +49,7 @@ cd packages/ts-sdk
 npm install
 npm run build
 ```
-The SDK helper creates OpenTelemetry spans and filters common sensitive attribute names. This is only defense-in-depth; do not attach prompts, completions, credentials, or customer data to telemetry.
+The SDK creates OpenTelemetry spans plus operation counters, error counters, and duration histograms. It exports traces and metrics over OTLP/HTTP to the Collector. Start the local stack with `docker compose --profile observability up -d`; see `docs/SDK_METRICS.md` for configuration and limitations. Attribute-name filtering is defense-in-depth; never attach prompts, completions, credentials, personal data, or raw request bodies to telemetry.
 
 ## API
 - `GET /health` — liveness.
@@ -76,6 +76,7 @@ Example release request: `examples/release-evaluation.json`.
 - [x] Kubernetes deployment starter and cloud scaffolding
 - [x] Deterministic SLO evaluation and error-budget calculations (aggregate-window input)
 - [ ] Authentication, tenant isolation, rate limits, audit trail
+- [x] SDK operation counters, error counters, and duration histogram with OTLP metric export
 - [ ] Validate OTLP Collector -> Phoenix pipeline end-to-end
 - [ ] Evidently drift/quality integration and benchmark
 - [ ] LangGraph investigation workflow with tool allowlists and human approval
